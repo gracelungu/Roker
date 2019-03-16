@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PhoneVerify"
+    android:orientation="vertical"
+    android:gravity="center|top"
+    android:background="#fff">
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|left"
+        android:padding="35dp"
+        android:background="@color/colorPrimary"
+        android:layout_marginBottom="0dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Let's verify \nyour \nphone"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:textColor="#fff"
+            android:paddingBottom="35dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="We will send a confirmation \ncode to your phone"
+            android:textSize="20sp"
+            android:textColor="#fff"/>
+
+    </LinearLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center|bottom"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="10dp"
+            android:background="#fff"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:paddingTop="25dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Country code"
+                android:paddingLeft="7dp"
+                android:paddingBottom="10dp"/>
+
+            <com.hbb20.CountryCodePicker
+                android:id="@+id/ccp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:ccp_showFullName="true"
+                app:ccp_showPhoneCode="true"
+                app:ccp_showNameCode="true"
+                app:ccp_defaultNameCode="ug"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="20dp"
+                />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Telephone"
+                android:paddingLeft="7dp"/>
+
+            <EditText
+                android:id="@+id/phone"
+                android:focusedByDefault="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="706973278"
+                android:layout_marginBottom="20dp"
+                android:inputType="phone"
+                android:textColor="@color/colorPrimaryDark"
+                android:textAlignment="center"
+                />
+
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="send code"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="15dp"
+            android:paddingRight="20dp"
+            android:paddingLeft="20dp"
+            android:textColor="#fff"
+            android:layout_alignParentBottom="true"
+            android:background="@color/colorPrimary"/>
+
+    </RelativeLayout>
+
+
+
+
+
+</LinearLayout>
