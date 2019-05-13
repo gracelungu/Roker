@@ -12,17 +12,19 @@ public class House implements Serializable {
     double price;
     String capacity, description, owner;
     transient List<String> images;
-    transient LatLng location;
+    double latitude;
+    double longitude;
     Boolean land;
     Boolean buy ;
     Boolean active;
 
-    public House(double price, String capacity, String description, List<String> images, LatLng location,Boolean land, Boolean buy, Boolean active, String owner) {
+    public House(double price, String capacity, String description, List<String> images, double latitude, double longitude,Boolean land, Boolean buy, Boolean active, String owner) {
         this.price = price;
         this.capacity = capacity;
         this.description = description;
         this.images = images;
-        this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.land = land;
         this.buy = buy;
         this.active = active;
@@ -57,14 +59,6 @@ public class House implements Serializable {
         this.description = description;
     }
 
-    public LatLng getLocation() {
-        return location;
-    }
-
-    public void setLocation(LatLng location) {
-        this.location = location;
-    }
-
     public Boolean getBuy() {
         return buy;
     }
@@ -95,6 +89,22 @@ public class House implements Serializable {
 
     public void setLand(Boolean land) {
         this.land = land;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     public String getOwner() {

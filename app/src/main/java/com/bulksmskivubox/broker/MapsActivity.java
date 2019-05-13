@@ -9,6 +9,8 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -20,26 +22,43 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 import android.Manifest;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+import java.util.List;
+
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private FirebaseAuth mAuth;
     private Menu menu;
@@ -56,6 +75,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FirebaseUser user;
     
     private boolean LOGGEDIN;
+
+    private DatabaseReference mDatabase;RecyclerView itemsRecycler;
+    private FirebaseRecyclerAdapter adapter;
+
+    private LinearLayoutManager linearLayoutManager;
+
+
 
     static {
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
@@ -79,9 +105,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mFusedLocationProviderClient = LocationServices
                 .getFusedLocationProviderClient(this);
 
+        // Items recycler view
+        itemsRecycler = findViewById(R.id.items_recycler);
+        linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        itemsRecycler.setLayoutManager(linearLayoutManager);
+        itemsRecycler.setHasFixedSize(true);
+
 
         //Initialize the variables
         initVars();
+
+        // Display all the properties on the bottom sheet
+        fetch();
 
     }
 
@@ -103,7 +138,143 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             LOGGEDIN = false;
 
         }
+        adapter.startListening();
 
+
+    }
+
+
+    public class viewHolder extends RecyclerView.ViewHolder {
+
+        RelativeLayout root;
+        TextView item_price;
+        TextView capacity;
+        ImageView image, locate;
+        TextView type;
+
+        public viewHolder(@NonNull View itemView) {
+            super(itemView);
+            root = itemView.findViewById(R.id.root);
+            item_price = itemView.findViewById(R.id.price);
+            capacity = itemView.findViewById(R.id.capacity);
+            image = itemView.findViewById(R.id.item_image);
+            locate = itemView.findViewById(R.id.locate);
+            type = itemView.findViewById(R.id.type);
+        }
+
+        public void setItem_price(double price) {
+            this.item_price.setText(price+" ugx");
+        }
+
+        public void setCapacity(String capacity, boolean land) {
+
+            if(land){
+                this.capacity.setText(capacity+" Acres");
+            }else{
+                this.capacity.setText(capacity+" Rooms");
+            }
+
+        }
+
+        public void setType(Boolean land){
+            if(land){
+                this.type.setText("LAND");
+            }else{
+                this.type.setText("HOUSE");
+            }
+        }
+
+        public void setImage(List<String> images) {
+            Picasso.get().load(images.get(0)).into(this.image);
+            Log.i("IMAGE PIC", images.get(0));
+        }
+    }
+
+
+    public void fetch() {
+        Query query = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("properties");
+
+
+        FirebaseRecyclerOptions<House> options =
+                new FirebaseRecyclerOptions.Builder<House>()
+                        .setQuery(query, House.class)
+                        .build();
+
+
+        adapter = new FirebaseRecyclerAdapter<House, MapsActivity.viewHolder>(options) {
+            @Override
+            public MapsActivity.viewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.list_item, parent, false);
+
+                return new MapsActivity.viewHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(MapsActivity.viewHolder holder, final int position, final House model) {
+
+                if(!model.getActive()){
+                    holder.root.setVisibility(View.GONE);
+                }
+
+                int icon ;
+
+                if(model.getLand()){
+                    icon = R.drawable.land_icon;
+                }else{
+                    icon = R.drawable.house_icon;
+                }
+
+
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(model.getLatitude(), model.getLongitude()))
+                        .snippet(model.getPrice()+" UGX")
+                        .icon(BitmapDescriptorFactory.fromResource(icon))
+                        .title(model.getPrice()+" UGX")
+
+                );
+
+                marker.setTag(adapter.getRef(position).getKey());
+
+                holder.setCapacity(model.getCapacity(), model.getLand());
+                holder.setItem_price(model.getPrice());
+                holder.setType(model.getLand());
+                holder.setImage(model.getImages());
+
+                holder.root.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        startActivity(new Intent(MapsActivity.this, Item.class).putExtra("key",adapter.getRef(position).getKey()));
+                    }
+                });
+
+                holder.locate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(model.getLatitude(), model.getLongitude())));
+                    }
+                });
+
+            }
+
+        };
+        itemsRecycler.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+
+
+
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        String itemKey = (String) marker.getTag();
+        startActivity(new Intent(MapsActivity.this, Item.class).putExtra("key",itemKey));
+
+
+        return true;
     }
 
     public void initVars(){
@@ -132,7 +303,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // position on right bottom
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0, 0, 30, 100);
+            layoutParams.setMargins(0, 0, 30, 300);
         }
 
 
@@ -143,6 +314,45 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Place autocomplete search
         placeSearch();
+
+        // Get all the properties and show them on the map
+        getProperties();
+
+        // Set a listener for marker click.
+        mMap.setOnMarkerClickListener(this);
+
+
+    }
+
+    public void getProperties(){
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        mDatabase.child("properties")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                        House house = dataSnapshot.getValue(House.class);
+                        showPropertyOnMap(house);
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        Toast.makeText(MapsActivity.this, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+    }
+
+    public void showPropertyOnMap(House house){
+
+        mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(house.getLatitude(), house.getLongitude()))
+                .title(house.getPrice()+" UGX"));
+
 
     }
 
@@ -222,7 +432,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void showDefaultLocation() {
         Toast.makeText(this, "Please enable your location", Toast.LENGTH_SHORT).show();
         LatLng kampala = new LatLng(0.347596, 32.582520);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(kampala));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(kampala));
     }
 
     @Override

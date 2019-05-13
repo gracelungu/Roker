@@ -132,7 +132,12 @@ public class location extends AppCompatActivity implements OnMapReadyCallback {
             public void onClick(View v) {
 
             if(location != null){
-                startActivity(new Intent(location.this, Details.class).putExtra("House",house));
+
+                Intent intent = new Intent(location.this,Details.class);
+                intent.putExtra("House",house);
+
+                startActivity(intent);
+
             }else{
                 Toast.makeText(location.this, "You must select a location by tapping on the map", Toast.LENGTH_SHORT).show();
             }
@@ -184,7 +189,8 @@ public class location extends AppCompatActivity implements OnMapReadyCallback {
 
                 marker.setPosition(location);
 
-                house.setLocation(location);
+                house.latitude = location.latitude;
+                house.longitude = location.longitude;
 
             }
         });

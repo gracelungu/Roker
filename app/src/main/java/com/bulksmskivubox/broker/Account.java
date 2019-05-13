@@ -69,6 +69,12 @@ public class Account extends AppCompatActivity {
             }
         });
 
+        // Items recycler view
+        itemsRecycler = findViewById(R.id.items_recycler);
+        linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        itemsRecycler.setLayoutManager(linearLayoutManager);
+        itemsRecycler.setHasFixedSize(true);
+
         //Initialize variables
         initVars();
 
@@ -95,11 +101,6 @@ public class Account extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        adapter.stopListening();
-    }
 
     public void initVars() {
 
@@ -124,11 +125,7 @@ public class Account extends AppCompatActivity {
         add = findViewById(R.id.add);
 
 
-        // Items recycler view
-        itemsRecycler = findViewById(R.id.items_recycler);
-        linearLayoutManager = new LinearLayoutManager(this);
-        itemsRecycler.setLayoutManager(linearLayoutManager);
-        itemsRecycler.setHasFixedSize(true);
+
 
     }
 
@@ -202,7 +199,7 @@ public class Account extends AppCompatActivity {
             @Override
             protected void onBindViewHolder(viewHolder holder, final int position, final House model) {
 
-                if(!model.getOwner().equals(currentUser.getUid())){
+                if(!model.getOwner().equals(currentUser.getUid()) && model.getActive() ){
                    holder.root.setVisibility(View.GONE);
                 }
 
@@ -226,5 +223,9 @@ public class Account extends AppCompatActivity {
 
     }
 
-
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(Account.this, MapsActivity.class));
+        super.onBackPressed();
+    }
 }

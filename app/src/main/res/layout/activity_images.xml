@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginTop="15dp"
-            android:text="Next"
+            android:text="Publish"
             android:textColor="#fff"
             android:background="@color/colorPrimary"/>
 
